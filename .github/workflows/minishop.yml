@@ -1,0 +1,60 @@
+name: MiniShop Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Apply MiniShop infrastructure changes"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-minishop
+  cancel-in-progress: false
+
+jobs:
+  infrastructure:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    defaults:
+      run:
+        working-directory: terraform-minishop
+
+    steps:
+      - name: Download repository
+        uses: actions/checkout@v7
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-north-1
+          mask-aws-account-id: true
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.14.6"
+          terraform_wrapper: false
+
+      - name: Terraform Format
+        run: terraform fmt -check -diff
+
+      - name: Terraform Init
+        run: terraform init -input=false -no-color
+
+      - name: Terraform Validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        run: terraform plan -input=false -no-color -lock-timeout=5m -out=plan.tfplan
+
+      - name: Terraform Apply
+        if: inputs.apply
+        run: terraform apply -input=false -no-color -lock-timeout=5m plan.tfplan
