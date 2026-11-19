@@ -22,7 +22,7 @@ provider "aws" {
 }
 
 variable "image_uri" {
-  description = "Full ECR image URI including the commit tag"
+  description = "Container image reference used by Lightsail"
   type        = string
 }
 
@@ -68,16 +68,16 @@ resource "aws_lightsail_container_service_deployment_version" "flask" {
 
   container {
     container_name = "flask-app"
-    image          = "555329828718.dkr.ecr.eu-north-1.amazonaws.com/flask-lab:diagnostic-nginx"
+    image          = var.image_uri
 
     ports = {
-      "80" = "HTTP"
+      "8080" = "HTTP"
     }
   }
 
   public_endpoint {
     container_name = "flask-app"
-    container_port = 80
+    container_port = 8080
 
     health_check {
       healthy_threshold   = 2
@@ -88,6 +88,7 @@ resource "aws_lightsail_container_service_deployment_version" "flask" {
       success_codes       = "200"
     }
   }
+}
 
   depends_on = [
     aws_ecr_repository_policy.lightsail_pull
