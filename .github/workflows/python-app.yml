@@ -37,3 +37,25 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t flask-lab:latest .
+
+      - name: Start container
+        run: docker run -d --name flask-test -p 127.0.0.1:8080:8080 flask-lab:latest
+
+      - name: Check container response
+        run: |
+          curl --fail --silent --show-error \
+            --retry 10 --retry-delay 2 --retry-connrefused \
+            --max-time 5 \
+            http://127.0.0.1:8080/ -o response.txt
+
+          cat response.txt
+          test "$(cat response.txt)" = "Hello world from app Pipeline testing."
+          echo "Container check passed"
+
+      - name: Show logs and remove container
+        if: always()
+        run: |
+          if docker container inspect flask-test > /dev/null 2>&1; then
+            docker logs flask-test
+            docker rm -f flask-test
+          fi
