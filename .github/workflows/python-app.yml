@@ -89,7 +89,12 @@ jobs:
 
       - name: Terraform Init
         working-directory: terraform
-        run: terraform init -input=false -no-color
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            terraform init -backend=false -input=false -no-color
+          else
+            terraform init -input=false -no-color
+          fi
 
       - name: Terraform Validate
         working-directory: terraform
