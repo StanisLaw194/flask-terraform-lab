@@ -68,7 +68,7 @@ resource "aws_lightsail_container_service_deployment_version" "flask" {
 
   container {
     container_name = "flask-app"
-    image          = nginx: latest
+    image          = "nginx:latest"
 
     ports = {
       "80" = "HTTP"
