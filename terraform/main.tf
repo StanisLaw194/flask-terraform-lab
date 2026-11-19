@@ -68,16 +68,16 @@ resource "aws_lightsail_container_service_deployment_version" "flask" {
 
   container {
     container_name = "flask-app"
-    image          = var.image_uri
+    image          = nginx:latest
 
     ports = {
-      "8080" = "HTTP"
+      "80" = "HTTP"
     }
   }
 
   public_endpoint {
     container_name = "flask-app"
-    container_port = 8080
+    container_port = 80
 
     health_check {
       healthy_threshold   = 2
