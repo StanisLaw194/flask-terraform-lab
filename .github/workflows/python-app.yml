@@ -75,3 +75,27 @@ jobs:
         run: |
           aws sts get-caller-identity
           echo "AWS connection successful"
+
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.14.6"
+          terraform_wrapper: false
+
+      - name: Terraform Format
+        working-directory: terraform
+        run: terraform fmt -check -diff
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init -input=false -no-color
+
+      - name: Terraform Validate
+        working-directory: terraform
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        if: github.event_name != 'pull_request'
+        working-directory: terraform
+        run: terraform plan -input=false -no-color
