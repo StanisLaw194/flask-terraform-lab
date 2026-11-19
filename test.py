@@ -14,7 +14,7 @@ class FlaskAppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.get_data(as_text=True),
-            "Hello world from app Pipeline testing.",
+            "Hello from Flask! Version 2 deployed with Terraform.",
         )
 
     def test_home_alias(self):
@@ -23,7 +23,7 @@ class FlaskAppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.get_data(as_text=True),
-            "Hello world from app Pipeline testing.",
+            "Hello from Flask! Version 2 deployed with Terraform.",
         )
 
 
