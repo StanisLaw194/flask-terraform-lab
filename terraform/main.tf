@@ -90,10 +90,6 @@ resource "aws_lightsail_container_service_deployment_version" "flask" {
   }
 }
 
-  depends_on = [
-    aws_ecr_repository_policy.lightsail_pull
-  ]
-
 
 output "lightsail_url" {
   description = "Public URL of the Flask application"
