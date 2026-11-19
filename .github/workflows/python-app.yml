@@ -65,7 +65,7 @@ jobs:
             http://127.0.0.1:8080/ -o response.txt
 
           cat response.txt
-          test "$(cat response.txt)" = "Hello world from app Pipeline testing."
+          test "$(cat response.txt)" = "Hello from Flask! Version 2 deployed with Terraform."
           echo "Container check passed"
 
       - name: Show logs and remove container
