@@ -6,9 +6,19 @@ on:
   pull_request:
     branches: ["main"]
   workflow_dispatch:
+    inputs:
+      apply:
+        description: "Apply Terraform changes to AWS"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
+
+concurrency:
+  group: terraform-lab
+  cancel-in-progress: false
 
 jobs:
   test:
@@ -103,4 +113,9 @@ jobs:
       - name: Terraform Plan
         if: github.event_name != 'pull_request'
         working-directory: terraform
-        run: terraform plan -input=false -no-color
+        run: terraform plan -input=false -no-color -lock-timeout=5m -out=plan.tfplan
+
+      - name: Terraform Apply
+        if: github.event_name == 'workflow_dispatch' && inputs.apply && github.ref == 'refs/heads/main'
+        working-directory: terraform
+        run: terraform apply -input=false -no-color -lock-timeout=5m plan.tfplan
