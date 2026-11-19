@@ -86,6 +86,47 @@ jobs:
           aws-region: eu-north-1
           mask-aws-account-id: true
 
+
+          - name: Install lightsailctl
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          curl --fail --silent --show-error --location \
+            --retry 3 \
+            https://s3.us-west-2.amazonaws.com/lightsailctl/latest/linux-amd64/lightsailctl \
+            --output "$RUNNER_TEMP/lightsailctl"
+          sudo install -m 0755 "$RUNNER_TEMP/lightsailctl" /usr/local/bin/lightsailctl
+
+      - name: Push Flask image to Lightsail
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          IMAGE_LABEL="flask-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+          aws lightsail push-container-image \
+            --service-name flask-lab \
+            --label "$IMAGE_LABEL" \
+            --image flask-lab:latest \
+            --region eu-north-1 \
+            --no-cli-pager
+
+          LIGHTSAIL_IMAGE=$(aws lightsail get-container-images \
+            --service-name flask-lab \
+            --region eu-north-1 \
+            --output json \
+            --no-cli-pager |
+            jq -er --arg prefix ":flask-lab.${IMAGE_LABEL}." '
+              [.containerImages[]? |
+                select(.image | startswith($prefix))]
+              | sort_by(.createdAt)
+              | last
+              | .image // empty
+            ')
+
+          echo "LIGHTSAIL_IMAGE=$LIGHTSAIL_IMAGE" >> "$GITHUB_ENV"
+          echo "Registered image: $LIGHTSAIL_IMAGE"
+
       - name: Check AWS connection
         if: github.event_name != 'pull_request'
         run: |
@@ -141,10 +182,10 @@ jobs:
         run: terraform validate -no-color
 
       - name: Terraform Plan
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         working-directory: terraform
         env:
-          TF_VAR_image_uri: ${{ secrets.REPOSITORY_URI }}:${{ github.sha }}
+          TF_VAR_image_uri: ${{ env.LIGHTSAIL_IMAGE }}
         run: terraform plan -input=false -no-color -lock-timeout=5m -out=plan.tfplan
 
       - name: Terraform Apply
