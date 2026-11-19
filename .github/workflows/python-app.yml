@@ -59,3 +59,19 @@ jobs:
             docker logs flask-test
             docker rm -f flask-test
           fi
+
+
+      - name: Configure AWS credentials
+        if: github.event_name != 'pull_request'
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+          mask-aws-account-id: true
+
+      - name: Check AWS connection
+        if: github.event_name != 'pull_request'
+        run: |
+          aws sts get-caller-identity
+          echo "AWS connection successful"
