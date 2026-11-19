@@ -87,7 +87,7 @@ jobs:
           mask-aws-account-id: true
 
 
-          - name: Install lightsailctl
+      - name: Install lightsailctl
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |
           curl --fail --silent --show-error --location \
